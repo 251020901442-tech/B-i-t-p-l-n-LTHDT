@@ -1,0 +1,739 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hệ Thống Nhà Sách -Trực Tuyến</title>
+    <!-- Bootstrap 5 -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- FontAwesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <!-- File CSS tùy chỉnh -->
+    <link rel="stylesheet" th:href="@{/css/style.css}" />
+  </head>
+  <body class="d-flex flex-column min-vh-100 bg-light">
+    <!-- HEADER -->
+    <header class="navbar-custom sticky-top">
+      <div class="container d-flex align-items-center justify-content-between">
+        <!-- Logo -->
+        <!-- Logo sáng tạo -->
+        <a
+          class="brand-logo d-flex align-items-center text-decoration-none flex-shrink-0"
+          href="/"
+        >
+          <div class="brand-emblem me-2">
+            <svg
+              width="42"
+              height="42"
+              viewBox="0 0 48 48"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+            >
+              <defs>
+                <linearGradient
+                  id="ebookGrad"
+                  x1="24"
+                  y1="16"
+                  x2="39"
+                  y2="34"
+                  gradientUnits="userSpaceOnUse"
+                >
+                  <stop offset="0%" stop-color="#E53935" />
+                  <stop offset="100%" stop-color="#F7941E" />
+                </linearGradient>
+                <linearGradient
+                  id="sparkGrad"
+                  x1="24"
+                  y1="5"
+                  x2="24"
+                  y2="17"
+                  gradientUnits="userSpaceOnUse"
+                >
+                  <stop offset="0%" stop-color="#FFD54F" />
+                  <stop offset="100%" stop-color="#F7941E" />
+                </linearGradient>
+              </defs>
+
+              <!-- Nền bo tròn trắng nổi bật trên nền đỏ -->
+              <rect x="2" y="2" width="44" height="44" rx="12" fill="#FFFFFF" />
+
+              <!-- Tia sáng tri thức + hạt số hóa -->
+              <path
+                class="logo-spark"
+                d="M24 5.5L25.4 9.6L29.5 11L25.4 12.4L24 16.5L22.6 12.4L18.5 11L22.6 9.6L24 5.5Z"
+                fill="url(#sparkGrad)"
+              />
+              <circle
+                cx="15.5"
+                cy="10.5"
+                r="1.5"
+                fill="#F7941E"
+                opacity="0.85"
+              />
+              <circle cx="32.5" cy="10" r="1.2" fill="#C92127" opacity="0.7" />
+
+              <!-- Trang trái: Sách giấy -->
+              <path
+                d="M23.5 34C19.2 31.6 14.3 31.6 10 33.2V18.2C14.3 16.6 19.2 16.8 23.5 19.6V34Z"
+                fill="#C92127"
+              />
+              <path
+                d="M13.5 22.8H20M13.5 26.2H18.5"
+                stroke="#FFFFFF"
+                stroke-width="1.7"
+                stroke-linecap="round"
+                opacity="0.92"
+              />
+
+              <!-- Trang phải: Ebook & Công nghệ -->
+              <path
+                d="M24.5 34C28.8 31.6 33.7 31.6 38 33.2V18.2C33.7 16.6 28.8 16.8 24.5 19.6V34Z"
+                fill="url(#ebookGrad)"
+              />
+              <!-- Biểu tượng dòng lệnh >_ -->
+              <path
+                d="M27.6 22.3L30.3 24.5L27.6 26.7"
+                stroke="#FFFFFF"
+                stroke-width="1.7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M31.6 26.7H34.4"
+                stroke="#FFFFFF"
+                stroke-width="1.7"
+                stroke-linecap="round"
+              />
+
+              <!-- Đường viền gáy sách dưới tạo chiều sâu 3D -->
+              <path
+                d="M9.5 35.5C14.2 33.9 19.4 34.2 24 36.8C28.6 34.2 33.8 33.9 38.5 35.5"
+                stroke="#C92127"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                opacity="0.4"
+              />
+            </svg>
+          </div>
+
+          <div class="brand-text d-flex flex-column lh-1">
+            <div class="d-flex align-items-center gap-1">
+              <span class="brand-title">NHÀ SÁCH</span>
+              <span class="brand-tag">4.0</span>
+            </div>
+            <span class="brand-subtitle">SÁCH GIẤY &bull; EBOOK</span>
+          </div>
+        </a>
+
+        <!-- Thanh Tìm Kiếm Trung Tâm -->
+        <form
+          action="/search"
+          method="get"
+          class="d-flex flex-grow-1 mx-4 position-relative"
+        >
+          <input
+            class="form-control search-bar"
+            type="text"
+            name="keyword"
+            th:value="${keyword}"
+            placeholder="Nhập tên sách, tác giả..."
+          />
+          <button class="search-btn px-4" type="submit">
+            <i class="fas fa-search"></i>
+          </button>
+        </form>
+
+        <!-- Các Nút Icon Góc Phải -->
+        <div class="d-flex align-items-center gap-3">
+          <!-- Khi CHƯA đăng nhập -->
+          <a
+            th:if="${session.loggedInUser == null}"
+            href="/login"
+            class="nav-action-btn"
+          >
+            <i class="far fa-user"></i>
+            <span>Tài khoản</span>
+          </a>
+
+          <!-- Khi ĐÃ đăng nhập -->
+          <th:block th:if="${session.loggedInUser != null}">
+            <a
+              href="/profile"
+              class="nav-action-btn text-warning fw-bold text-decoration-none"
+            >
+              <i class="fas fa-user-check"></i>
+              <span th:text="'Chào, ' + ${session.loggedInUser.username}"
+                >Chào, User</span
+              >
+            </a>
+            <a
+              href="/logout"
+              class="nav-action-btn text-white text-decoration-none"
+            >
+              <i class="fas fa-sign-out-alt"></i>
+              <span>Đăng xuất</span>
+            </a>
+          </th:block>
+
+          <!-- Nút Giỏ hàng (đã gắn id="cartCountBadge") -->
+          <a href="/cart" class="nav-action-btn position-relative">
+            <i class="fas fa-shopping-cart"></i>
+            <span>Giỏ hàng</span>
+            <span
+              id="cartCountBadge"
+              class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark"
+              th:text="${session.cartCount != null ? session.cartCount : 0}"
+            >
+              0
+            </span>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- BANNER QUẢNG CÁO -->
+    <div class="container mt-3 mb-4">
+      <div class="bg-white p-2 rounded shadow-sm">
+        <img
+          id="promoBannerImg"
+          src="https://cdn0.fahasa.com/media/magentothem/banner7/Trang_Lading_Thang_11_Tuan_4_Banner_Slider_840x320.jpg"
+          alt="Banner Khuyến Mãi"
+          class="img-fluid rounded w-100"
+          style="object-fit: cover; max-height: 350px"
+          onerror="
+            this.style.display = 'none';
+            document
+              .getElementById('bannerFallback')
+              .classList.remove('d-none');
+          "
+        />
+        <!-- Khung Banner dự phòng tự hiển thị nếu link ảnh ngoài bị lỗi -->
+        <div
+          id="bannerFallback"
+          class="d-none rounded text-white p-5 text-center"
+          style="background: linear-gradient(135deg, #c92127 0%, #f7941e 100%)"
+        >
+          <h2 class="fw-bold mb-2">
+            <i class="fas fa-book-reader me-2"></i>KHO SÁCH CÔNG NGHỆ &amp;
+            NGOẠI NGỮ
+          </h2>
+          <p class="mb-0 fs-5">
+            Đầy đủ phiên bản Sách giấy và Ebook PDF — Giao nhanh, hỗ trợ cấp
+            link trực tuyến
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN CONTENT - DANH SÁCH SÁCH TỪ DATABASE -->
+    <main class="container mb-5 flex-grow-1">
+      <div class="bg-white p-3 p-md-4 rounded shadow-sm">
+        <!-- Tiêu đề + Bộ lọc Thể loại & Định dạng -->
+        <div
+          class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4"
+        >
+          <h4 class="mb-0 ps-2 border-start border-4 border-danger fw-bold">
+            SÁCH MỚI CẬP NHẬT
+            <small class="text-muted fs-6 fw-normal" id="bookCountText"></small>
+          </h4>
+
+          <div class="d-flex flex-wrap align-items-center gap-2">
+            <!-- Lọc Thể loại -->
+            <div
+              class="btn-group btn-group-sm"
+              role="group"
+              aria-label="Lọc thể loại"
+            >
+              <button
+                type="button"
+                class="btn btn-danger filter-cat-btn active"
+                data-cat="ALL"
+              >
+                Tất cả
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-danger filter-cat-btn"
+                data-cat="Công nghệ thông tin"
+              >
+                Công nghệ thông tin
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-danger filter-cat-btn"
+                data-cat="Ngoại ngữ"
+              >
+                Ngoại ngữ
+              </button>
+            </div>
+
+            <!-- Lọc Định dạng (Sách giấy / Ebook) -->
+            <div
+              class="btn-group btn-group-sm"
+              role="group"
+              aria-label="Lọc định dạng"
+            >
+              <button
+                type="button"
+                class="btn btn-secondary filter-type-btn active"
+                data-type="ALL"
+              >
+                Mọi bản
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-secondary filter-type-btn"
+                data-type="PHYSICAL"
+              >
+                Sách giấy
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-secondary filter-type-btn"
+                data-type="EBOOK"
+              >
+                Ebook
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4"
+          id="bookListContainer"
+        >
+          <!-- Vòng lặp lấy sách từ Spring Boot -->
+          <div
+            class="col book-item"
+            th:each="book : ${books}"
+            th:attr="data-category=${book.category != null ? book.category : 'Khác'}, data-type=${#strings.containsIgnoreCase(book.title, 'Ebook') ? 'EBOOK' : 'PHYSICAL'}"
+          >
+            <div class="card book-card h-100 p-2 position-relative">
+              <!-- Nhãn Sách giấy / Ebook ở góc trên -->
+              <span
+                class="badge position-absolute top-0 end-0 m-2"
+                style="z-index: 2"
+                th:classappend="${#strings.containsIgnoreCase(book.title, 'Ebook') ? 'bg-info text-dark' : 'bg-success'}"
+                th:text="${#strings.containsIgnoreCase(book.title, 'Ebook') ? 'Ebook' : 'Sách giấy'}"
+              >
+                Sách giấy
+              </span>
+
+              <!-- Ảnh bìa sách -->
+              <img
+                th:src="${book.imageUrl}"
+                class="card-img-top rounded mb-2"
+                style="height: 220px; width: 100%; object-fit: contain"
+                alt="Bìa Sách"
+              />
+
+              <div class="card-body p-2 d-flex flex-column">
+                <!-- Nhãn Thể loại -->
+                <div class="mb-1" th:if="${book.category != null}">
+                  <span
+                    class="badge bg-light text-secondary border fw-normal"
+                    th:text="${book.category}"
+                  >
+                    Thể loại
+                  </span>
+                </div>
+
+                <!-- Tên sách -->
+                <h6
+                  class="card-title text-dark fw-bold mb-1"
+                  th:text="${book.title}"
+                  style="
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                    min-height: 2.5em;
+                  "
+                >
+                  Tên sách
+                </h6>
+
+                <!-- Tác giả -->
+                <small class="text-muted mb-2" th:text="${book.author}"
+                  >Tác giả</small
+                >
+
+                <!-- Giá tiền + Nút Thêm vào giỏ hàng (AJAX) -->
+                <div class="mt-auto pt-2">
+                  <div
+                    class="book-price mb-2"
+                    th:text="${#numbers.formatDecimal(book.price, 0, 'COMMA', 0, 'POINT')} + ' đ'"
+                  >
+                    0 đ
+                  </div>
+                  <form
+                    action="/api/cart/add"
+                    method="post"
+                    class="add-to-cart-form"
+                  >
+                    <input
+                      type="hidden"
+                      name="title"
+                      th:value="${book.title}"
+                    />
+                    <input
+                      type="hidden"
+                      name="price"
+                      th:value="${book.price}"
+                    />
+                    <button type="submit" class="btn btn-add-cart w-100 py-2">
+                      <i class="fas fa-cart-plus me-1"></i> Thêm vào giỏ
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Báo không có sách từ DB -->
+        <div
+          th:if="${#lists.isEmpty(books)}"
+          class="alert alert-warning text-center mt-3"
+        >
+          Không tìm thấy cuốn sách nào phù hợp!
+        </div>
+
+        <!-- Báo không có sách khi lọc trên trang -->
+        <div
+          id="emptyFilterAlert"
+          class="alert alert-info text-center mt-3 d-none"
+        >
+          Chưa có đầu sách nào thuộc bộ lọc bạn vừa chọn.
+        </div>
+      </div>
+    </main>
+
+    <!-- FOOTER -->
+    <!-- FOOTER CHUYÊN NGHIỆP -->
+    <footer class="site-footer mt-auto">
+      <!-- Dải đăng ký nhận bản tin (Tông đỏ Fahasa) -->
+      <div class="footer-newsletter py-3">
+        <div class="container">
+          <div class="row align-items-center g-3">
+            <div class="col-lg-5 d-flex align-items-center text-white">
+              <i class="far fa-envelope-open fa-2x me-3"></i>
+              <div>
+                <h6 class="mb-0 fw-bold text-uppercase">
+                  Đăng ký nhận bản tin
+                </h6>
+                <small class="opacity-75"
+                  >Nhận thông báo sách mới &amp; ưu đãi Ebook hàng tuần</small
+                >
+              </div>
+            </div>
+            <div class="col-lg-7">
+              <form
+                class="newsletter-form d-flex bg-white rounded p-1 shadow-sm"
+                onsubmit="
+                  event.preventDefault();
+                  alert('Cảm ơn bạn đã đăng ký nhận bản tin!');
+                  this.reset();
+                "
+              >
+                <input
+                  type="email"
+                  class="form-control border-0 shadow-none"
+                  placeholder="Nhập địa chỉ email của bạn..."
+                  required
+                />
+                <button
+                  type="submit"
+                  class="btn btn-newsletter px-4 fw-bold text-nowrap"
+                >
+                  Đăng ký
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Nội dung chính 4 cột -->
+      <div class="footer-main bg-white pt-5 pb-4">
+        <div class="container">
+          <div class="row g-4">
+            <!-- Cột 1: Thương hiệu & Liên hệ -->
+            <div class="col-lg-4 col-md-6">
+              <a
+                href="/"
+                class="footer-logo d-inline-flex align-items-center text-decoration-none mb-3"
+              >
+                <i class="fas fa-book-open me-2"></i> NHÀ SÁCH TRỰC TUYẾN
+              </a>
+              <p class="text-muted small mb-3">
+                Hệ thống phân phối Sách giấy chính hãng &amp; Ebook bản quyền
+                chuyên sâu về
+                <strong>Công nghệ thông tin</strong> và
+                <strong>Ngoại ngữ</strong>. Giao hàng toàn quốc, cấp link tải
+                Ebook nhanh chóng.
+              </p>
+              <ul class="list-unstyled small text-muted footer-contact mb-3">
+                <li class="mb-2">
+                  <i class="fas fa-map-marker-alt text-danger me-2"></i>
+                  Tại đại học Phenikaa
+                </li>
+                <li class="mb-2">
+                  <i class="fas fa-phone-alt text-danger me-2"></i>
+                  Hotline: <strong class="text-dark">123456777</strong> (8:00 -
+                  21:00)
+                </li>
+                <li class="mb-2">
+                  <i class="fas fa-envelope text-danger me-2"></i>
+                  cskh@nhasachtructuyen.vn
+                </li>
+              </ul>
+
+              <!-- Mạng xã hội -->
+              <div class="d-flex gap-2">
+                <a href="#" class="social-btn" aria-label="Facebook"
+                  ><i class="fab fa-facebook-f"></i
+                ></a>
+                <a href="#" class="social-btn" aria-label="YouTube"
+                  ><i class="fab fa-youtube"></i
+                ></a>
+                <a href="#" class="social-btn" aria-label="Instagram"
+                  ><i class="fab fa-instagram"></i
+                ></a>
+                <a href="#" class="social-btn" aria-label="TikTok"
+                  ><i class="fab fa-tiktok"></i
+                ></a>
+              </div>
+            </div>
+
+            <!-- Cột 2: Dịch vụ & Chính sách -->
+            <div class="col-lg-3 col-md-6">
+              <h6 class="footer-heading">DỊCH VỤ &amp; HỖ TRỢ</h6>
+              <ul class="list-unstyled footer-links">
+                <li><a href="#">Điều khoản sử dụng</a></li>
+                <li><a href="#">Chính sách bảo mật thông tin</a></li>
+                <li><a href="#">Chính sách đổi - trả - hoàn tiền</a></li>
+                <li><a href="#">Chính sách vận chuyển sách giấy</a></li>
+                <li><a href="#">Hướng dẫn nhận &amp; đọc Ebook</a></li>
+              </ul>
+            </div>
+
+            <!-- Cột 3: Tài khoản của tôi (Nối trực tiếp route thật) -->
+            <div class="col-lg-2 col-md-6">
+              <h6 class="footer-heading">TÀI KHOẢN</h6>
+              <ul class="list-unstyled footer-links">
+                <li><a href="/login">Đăng nhập</a></li>
+                <li><a href="/register">Tạo tài khoản mới</a></li>
+                <li><a href="/profile">Hồ sơ &amp; Thứ hạng</a></li>
+                <li><a href="/profile">Lịch sử đơn hàng</a></li>
+                <li><a href="/cart">Giỏ hàng của tôi</a></li>
+              </ul>
+            </div>
+
+            <!-- Cột 4: Thanh toán & Cam kết -->
+            <div class="col-lg-3 col-md-6">
+              <h6 class="footer-heading">THANH TOÁN &amp; CAM KẾT</h6>
+              <div class="d-flex flex-wrap gap-2 mb-3">
+                <span class="pay-badge"
+                  ><i class="fas fa-money-bill-wave text-success me-1"></i
+                  >COD</span
+                >
+                <span class="pay-badge"
+                  ><i class="fas fa-qrcode text-primary me-1"></i>VietQR</span
+                >
+                <span class="pay-badge"
+                  ><i class="fas fa-wallet text-danger me-1"></i>MoMo</span
+                >
+                <span class="pay-badge"
+                  ><i class="fab fa-cc-visa text-primary me-1"></i>Visa</span
+                >
+                <span class="pay-badge"
+                  ><i class="fab fa-cc-mastercard text-warning me-1"></i
+                  >Mastercard</span
+                >
+              </div>
+
+              <div class="p-3 rounded bg-light border small">
+                <div class="d-flex align-items-center mb-2">
+                  <i class="fas fa-shield-alt text-danger me-2"></i>
+                  <span><strong>100%</strong> sách chính hãng</span>
+                </div>
+                <div class="d-flex align-items-center mb-2">
+                  <i class="fas fa-shipping-fast text-danger me-2"></i>
+                  <span>Giao nhanh toàn quốc 2 - 4 ngày</span>
+                </div>
+                <div class="d-flex align-items-center">
+                  <i class="fas fa-cloud-download-alt text-danger me-2"></i>
+                  <span>Cấp link Ebook ngay sau khi duyệt</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Thanh bản quyền dưới cùng -->
+      <div class="footer-bottom py-3">
+        <div
+          class="container d-flex flex-wrap justify-content-between align-items-center gap-2 small"
+        >
+          <span
+            >&copy; 2026 <strong>Hệ Thống Nhà Sách Trực Tuyến</strong>. Bảo lưu
+            mọi quyền.</span
+          >
+          <span class="text-muted"
+            >Phát triển trên nền tảng Spring Boot &amp; Bootstrap 5</span
+          >
+        </div>
+      </div>
+    </footer>
+
+    <!-- Thông báo nổi góc dưới phải khi thêm giỏ hàng thành công -->
+    <div
+      id="cartToast"
+      class="position-fixed bottom-0 end-0 m-3 px-3 py-2 rounded shadow text-white bg-success fw-semibold"
+      style="z-index: 9999; display: none; transition: opacity 0.3s ease"
+    >
+      <i class="fas fa-check-circle me-1"></i>
+      <span id="cartToastMsg">Đã thêm vào giỏ hàng!</span>
+    </div>
+
+    <!-- Script lọc sách + Thêm giỏ hàng ngầm (AJAX) -->
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // 1. Bộ lọc Thể loại & Định dạng
+        let currentCat = "ALL";
+        let currentType = "ALL";
+
+        const catBtns = document.querySelectorAll(".filter-cat-btn");
+        const typeBtns = document.querySelectorAll(".filter-type-btn");
+        const items = document.querySelectorAll(".book-item");
+        const emptyAlert = document.getElementById("emptyFilterAlert");
+        const countText = document.getElementById("bookCountText");
+
+        function applyFilters() {
+          let visibleCount = 0;
+          items.forEach((item) => {
+            const cat = item.getAttribute("data-category") || "";
+            const type = item.getAttribute("data-type") || "";
+            const matchCat = currentCat === "ALL" || cat === currentCat;
+            const matchType = currentType === "ALL" || type === currentType;
+
+            if (matchCat && matchType) {
+              item.classList.remove("d-none");
+              visibleCount++;
+            } else {
+              item.classList.add("d-none");
+            }
+          });
+
+          if (countText) {
+            countText.textContent = `(${visibleCount} sản phẩm)`;
+          }
+          if (emptyAlert && items.length > 0) {
+            emptyAlert.classList.toggle("d-none", visibleCount > 0);
+          }
+        }
+
+        catBtns.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            currentCat = btn.getAttribute("data-cat");
+            catBtns.forEach((b) => {
+              b.classList.remove("btn-danger", "active");
+              b.classList.add("btn-outline-danger");
+            });
+            btn.classList.remove("btn-outline-danger");
+            btn.classList.add("btn-danger", "active");
+            applyFilters();
+          });
+        });
+
+        typeBtns.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            currentType = btn.getAttribute("data-type");
+            typeBtns.forEach((b) => {
+              b.classList.remove("btn-secondary", "active");
+              b.classList.add("btn-outline-secondary");
+            });
+            btn.classList.remove("btn-outline-secondary");
+            btn.classList.add("btn-secondary", "active");
+            applyFilters();
+          });
+        });
+
+        applyFilters();
+
+        // 2. Thêm vào giỏ hàng ngầm (không tải lại trang)
+        const forms = document.querySelectorAll(".add-to-cart-form");
+        const cartBadge = document.getElementById("cartCountBadge");
+        const toast = document.getElementById("cartToast");
+        const toastMsg = document.getElementById("cartToastMsg");
+        let toastTimer = null;
+
+        forms.forEach((form) => {
+          form.addEventListener("submit", async function (e) {
+            e.preventDefault(); // Chặn trình duyệt tải lại trang
+
+            const btn = form.querySelector("button[type='submit']");
+            const title = form.querySelector("input[name='title']").value;
+            const price = form.querySelector("input[name='price']").value;
+
+            try {
+              const params = new URLSearchParams();
+              params.append("title", title);
+              params.append("price", price);
+
+              const res = await fetch("/api/cart/add", {
+                method: "POST",
+                body: params,
+              });
+
+              if (!res.ok) throw new Error("Lỗi kết nối server");
+
+              const data = await res.json();
+
+              // Cập nhật số trên chấm vàng Giỏ hàng
+              if (cartBadge && data.cartCount !== undefined) {
+                cartBadge.textContent = data.cartCount;
+              }
+
+              // Đổi nút sang màu xanh trong 1 giây
+              const originalHtml = btn.innerHTML;
+              btn.innerHTML = '<i class="fas fa-check me-1"></i> Đã thêm';
+              btn.classList.add("bg-success");
+              setTimeout(() => {
+                btn.innerHTML = originalHtml;
+                btn.classList.remove("bg-success");
+              }, 1000);
+
+              // Hiện thông báo góc dưới bên phải
+              if (toast && toastMsg) {
+                toastMsg.textContent = `Đã thêm "${title}" vào giỏ!`;
+                toast.style.display = "block";
+                clearTimeout(toastTimer);
+                toastTimer = setTimeout(() => {
+                  toast.style.display = "none";
+                }, 2200);
+              }
+            } catch (err) {
+              console.error(err);
+              alert("Không thể thêm vào giỏ hàng, vui lòng thử lại!");
+            }
+          });
+        });
+      });
+    </script>
+
+    <!-- File JS của bạn -->
+    <script th:src="@{/js/main.js}"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

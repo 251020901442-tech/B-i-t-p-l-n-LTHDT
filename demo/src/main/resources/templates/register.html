@@ -1,0 +1,113 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Đăng ký - Hệ Thống Nhà Sách</title>
+    <!-- Nhúng Bootstrap, FontAwesome & CSS của bạn -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" th:href="@{/css/style.css}" />
+  </head>
+  <body>
+    <header class="navbar-custom mb-5 shadow-sm">
+      <div class="container text-center py-2">
+        <a
+          class="navbar-brand text-white text-decoration-none fs-3 fw-bold"
+          href="/"
+        >
+          <i class="fas fa-book-open me-2"></i> NHÀ SÁCH
+        </a>
+      </div>
+    </header>
+
+    <div class="container mb-5">
+      <div class="row justify-content-center">
+        <div class="col-md-5">
+          <div class="card book-card border-0 p-3">
+            <div class="card-body">
+              <h3
+                class="text-center fw-bold mb-4"
+                style="color: var(--fahasa-red)"
+              >
+                ĐĂNG KÝ TÀI KHOẢN
+              </h3>
+
+              <!-- Báo lỗi nếu trùng tên hoặc sai pass -->
+              <div th:if="${error}" class="alert alert-danger text-center py-2">
+                <i class="fas fa-exclamation-triangle me-1"></i>
+                <span th:text="${error}"></span>
+              </div>
+
+              <!-- Form Đăng ký -->
+              <form action="/register" method="post">
+                <div class="input-group mb-3">
+                  <span class="input-group-text bg-white border-end-0"
+                    ><i class="far fa-user text-muted"></i
+                  ></span>
+                  <input
+                    type="text"
+                    class="form-control border-start-0 ps-0"
+                    name="username"
+                    placeholder="Tên đăng nhập"
+                    required
+                  />
+                </div>
+
+                <div class="input-group mb-3">
+                  <span class="input-group-text bg-white border-end-0"
+                    ><i class="fas fa-lock text-muted"></i
+                  ></span>
+                  <input
+                    type="password"
+                    class="form-control border-start-0 ps-0"
+                    name="password"
+                    placeholder="Mật khẩu"
+                    required
+                  />
+                </div>
+
+                <div class="input-group mb-4">
+                  <span class="input-group-text bg-white border-end-0"
+                    ><i class="fas fa-check-circle text-muted"></i
+                  ></span>
+                  <input
+                    type="password"
+                    class="form-control border-start-0 ps-0"
+                    name="confirmPassword"
+                    placeholder="Nhập lại mật khẩu"
+                    required
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  class="btn btn-add-cart w-100 py-2 fs-5 mb-3 shadow-sm"
+                >
+                  Tạo Tài Khoản
+                </button>
+              </form>
+
+              <div class="text-center mt-3 border-top pt-3">
+                <span class="text-muted">Bạn đã có tài khoản?</span>
+                <a
+                  href="/login"
+                  class="text-decoration-none fw-bold"
+                  style="color: var(--fahasa-red)"
+                  >Đăng nhập ngay</a
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script th:src="@{/js/main.js}"></script>
+  </body>
+</html>

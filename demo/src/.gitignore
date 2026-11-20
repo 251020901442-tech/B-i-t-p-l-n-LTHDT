@@ -1,0 +1,10 @@
+bin/
+build/
+target/
+.gradle/
+.idea/
+.vscode/
+*.class
+*.log
+bin/
+.vscode/

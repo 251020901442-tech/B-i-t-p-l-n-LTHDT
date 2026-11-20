@@ -1,0 +1,433 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Giỏ hàng - Nhà Sách</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" th:href="@{/css/style.css}" />
+  </head>
+  <body class="bg-light">
+    <!-- Thanh menu trên cùng -->
+    <header
+      class="navbar-custom sticky-top mb-4 shadow-sm"
+      style="background-color: #c92127; padding: 12px 0"
+    >
+      <div class="container d-flex align-items-center justify-content-between">
+        <a
+          class="navbar-brand text-white fw-bold fs-4 text-decoration-none"
+          href="/"
+        >
+          <i class="fas fa-book-open me-2"></i> NHÀ SÁCH
+        </a>
+        <div class="d-flex align-items-center gap-3">
+          <a href="/" class="btn btn-outline-light btn-sm">
+            <i class="fas fa-arrow-left me-1"></i> Tiếp tục mua sách
+          </a>
+          <a
+            th:if="${session.loggedInUser != null}"
+            href="/profile"
+            class="btn btn-warning btn-sm fw-bold text-dark"
+          >
+            <i class="fas fa-user me-1"></i> Hồ sơ của tôi
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <div class="container mb-5">
+      <div class="card border-0 shadow-sm p-4">
+        <h4 class="fw-bold text-danger mb-4">
+          <i class="fas fa-shopping-cart me-2"></i> Giỏ hàng của bạn
+        </h4>
+
+        <!-- Trường hợp giỏ hàng trống -->
+        <div
+          th:if="${#lists.isEmpty(cart)}"
+          class="text-center py-5 text-muted"
+        >
+          <i class="fas fa-shopping-basket fa-3x mb-3 opacity-50"></i>
+          <p class="mb-3">Giỏ hàng của bạn hiện đang trống.</p>
+          <a href="/" class="btn btn-danger px-4">Quay lại chọn sách</a>
+        </div>
+
+        <!-- Trường hợp có sách trong giỏ -->
+        <div th:if="${!#lists.isEmpty(cart)}">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>Tên sách</th>
+                  <th class="text-center">Số lượng</th>
+                  <th class="text-end">Giá Sách giấy (Book)</th>
+                  <th class="text-end">Giá Ebook (-40%)</th>
+                  <th class="text-center">Xóa</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr th:each="item, stat : ${cart}">
+                  <td class="fw-semibold" th:text="${item.title}">Tên sách</td>
+                  <td class="text-center" th:text="${item.quantity}">1</td>
+                  <td
+                    class="text-end text-danger fw-bold"
+                    th:text="${#numbers.formatDecimal(item.bookSubtotal, 0, 'COMMA', 0, 'POINT')} + ' đ'"
+                  >
+                    150,000 đ
+                  </td>
+                  <td
+                    class="text-end text-primary fw-bold"
+                    th:text="${#numbers.formatDecimal(item.ebookSubtotal, 0, 'COMMA', 0, 'POINT')} + ' đ'"
+                  >
+                    90,000 đ
+                  </td>
+                  <td class="text-center">
+                    <a
+                      th:href="@{/cart/remove(index=${stat.index})}"
+                      class="btn btn-outline-danger btn-sm"
+                    >
+                      <i class="fas fa-trash"></i>
+                    </a>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Khu vực tổng tạm tính và nút Thanh toán -->
+          <div class="d-flex flex-column align-items-end border-top pt-3 mt-3">
+            <div class="mb-1">
+              Tổng tiền <strong>Sách giấy (Book)</strong>:
+              <span
+                class="fs-5 fw-bold text-danger ms-2"
+                th:text="${#numbers.formatDecimal(totalBookPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'"
+                >0 đ</span
+              >
+            </div>
+            <div class="mb-3">
+              Tổng tiền <strong>Ebook</strong>:
+              <span
+                class="fs-5 fw-bold text-primary ms-2"
+                th:text="${#numbers.formatDecimal(totalEbookPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'"
+                >0 đ</span
+              >
+            </div>
+
+            <!-- Nút mở hộp thoại chọn Ebook hay Sách giấy -->
+            <button
+              type="button"
+              class="btn btn-danger btn-lg px-5 shadow-sm"
+              data-bs-toggle="modal"
+              data-bs-target="#checkoutModal"
+            >
+              <i class="fas fa-credit-card me-2"></i> Thanh toán
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HỘP THOẠI HỎI KHÁCH MUA EBOOK HAY SÁCH GIẤY -->
+    <!-- HỘP THOẠI THANH TOÁN 2 BƯỚC (CHỌN ĐỊNH DẠNG -> FORM GIAO HÀNG / MÃ QR) -->
+    <div class="modal fade" id="checkoutModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+          <div class="modal-header bg-danger text-white">
+            <h5 class="modal-title fw-bold" id="checkoutModalTitle">
+              <i class="fas fa-question-circle me-2"></i> Chọn định dạng sách
+              muốn mua
+            </h5>
+            <button
+              type="button"
+              class="btn-close btn-close-white"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+
+          <form action="/checkout" method="post" id="checkoutForm">
+            <!-- BƯỚC 1: CHỌN SÁCH GIẤY HAY EBOOK -->
+            <div id="step1-choose-type">
+              <div class="modal-body p-4">
+                <p class="text-muted mb-3">
+                  Bạn muốn thanh toán đơn hàng này theo hình thức nào?
+                </p>
+
+                <!-- Lựa chọn 1: Sách giấy (Book) -->
+                <label
+                  class="d-flex justify-content-between align-items-center border rounded p-3 mb-3 w-100"
+                  style="cursor: pointer"
+                >
+                  <div>
+                    <input
+                      class="form-check-input me-2"
+                      type="radio"
+                      name="bookType"
+                      value="BOOK"
+                      checked
+                    />
+                    <strong class="fs-6"
+                      ><i class="fas fa-book text-danger me-1"></i> Sách giấy
+                      (Book)</strong
+                    >
+                    <div class="small text-muted ms-4">
+                      Giao hàng tận nơi bản in truyền thống
+                    </div>
+                  </div>
+                  <span
+                    class="fw-bold text-danger fs-5"
+                    th:text="${#numbers.formatDecimal(totalBookPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'"
+                  >
+                    150,000 đ
+                  </span>
+                </label>
+
+                <!-- Lựa chọn 2: Ebook -->
+                <label
+                  class="d-flex justify-content-between align-items-center border rounded p-3 w-100"
+                  style="cursor: pointer"
+                >
+                  <div>
+                    <input
+                      class="form-check-input me-2"
+                      type="radio"
+                      name="bookType"
+                      value="EBOOK"
+                    />
+                    <strong class="fs-6"
+                      ><i class="fas fa-tablet-alt text-primary me-1"></i> Ebook
+                      (Sách điện tử)</strong
+                    >
+                    <div class="small text-muted ms-4">
+                      Đọc ngay trực tuyến, tiết kiệm 40%
+                    </div>
+                  </div>
+                  <span
+                    class="fw-bold text-primary fs-5"
+                    th:text="${#numbers.formatDecimal(totalEbookPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'"
+                  >
+                    90,000 đ
+                  </span>
+                </label>
+
+                <div
+                  th:if="${session.loggedInUser == null}"
+                  class="alert alert-warning small mt-3 mb-0"
+                >
+                  <i class="fas fa-info-circle me-1"></i> Bạn chưa đăng nhập. Hệ
+                  thống sẽ chuyển sang trang Đăng nhập trước khi lưu đơn hàng.
+                </div>
+              </div>
+
+              <div class="modal-footer bg-light">
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  data-bs-dismiss="modal"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-danger fw-bold px-4"
+                  onclick="goToStep2()"
+                >
+                  <i class="fas fa-check me-1"></i> Xác nhận
+                </button>
+              </div>
+            </div>
+
+            <!-- BƯỚC 2A: FORM ĐIỀN THÔNG TIN GIAO HÀNG (NẾU CHỌN BOOK) -->
+            <div id="step2-book-form" class="d-none">
+              <div class="modal-body p-4">
+                <div
+                  class="alert alert-light border d-flex justify-content-between align-items-center py-2 mb-3"
+                >
+                  <span>Tổng tiền Sách giấy (Thanh toán khi nhận):</span>
+                  <strong
+                    class="text-danger fs-5"
+                    th:text="${#numbers.formatDecimal(totalBookPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'"
+                  >
+                    150,000 đ
+                  </strong>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label fw-semibold small"
+                    >Tên người nhận <span class="text-danger">*</span></label
+                  >
+                  <input
+                    type="text"
+                    class="form-control"
+                    name="recipientName"
+                    placeholder="Nhập họ và tên người nhận"
+                  />
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label fw-semibold small"
+                    >Số điện thoại <span class="text-danger">*</span></label
+                  >
+                  <input
+                    type="tel"
+                    class="form-control"
+                    name="phone"
+                    placeholder="Ví dụ: 0912345678"
+                  />
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label fw-semibold small"
+                    >Địa chỉ nhà <span class="text-danger">*</span></label
+                  >
+                  <input
+                    type="text"
+                    class="form-control"
+                    name="address"
+                    placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/TP"
+                  />
+                </div>
+
+                <div class="mb-1">
+                  <label class="form-label fw-semibold small"
+                    >Email nhận thông báo thời gian giao hàng
+                    <span class="text-danger">*</span></label
+                  >
+                  <input
+                    type="email"
+                    class="form-control"
+                    name="email"
+                    placeholder="example@gmail.com"
+                  />
+                  <div class="form-text">
+                    Hệ thống sẽ gửi thời gian dự kiến giao hàng qua email này.
+                  </div>
+                </div>
+              </div>
+
+              <div class="modal-footer bg-light justify-content-between">
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary"
+                  onclick="backToStep1()"
+                >
+                  <i class="fas fa-arrow-left me-1"></i> Quay lại
+                </button>
+                <button type="submit" class="btn btn-danger fw-bold px-4">
+                  <i class="fas fa-paper-plane me-1"></i> Hoàn tất đặt hàng
+                </button>
+              </div>
+            </div>
+
+            <!-- BƯỚC 2B: HIỆN GIÁ & MÃ QR TÀI KHOẢN CÔNG TY (NẾU CHỌN EBOOK) -->
+            <div id="step2-ebook-qr" class="d-none">
+              <div class="modal-body p-4 text-center">
+                <p class="text-muted mb-1">
+                  Số tiền cần thanh toán cho đơn <strong>Ebook</strong>:
+                </p>
+                <div
+                  class="fs-3 fw-bold text-primary mb-3"
+                  th:text="${#numbers.formatDecimal(totalEbookPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'"
+                >
+                  90,000 đ
+                </div>
+
+                <!-- Mã QR tự động điền đúng số tiền (bạn có thể thay MB và số tài khoản bên dưới) -->
+                <div
+                  class="border rounded p-2 d-inline-block bg-white shadow-sm mb-3"
+                >
+                  <img
+                    th:src="'https://img.vietqr.io/image/MB-0123456789-compact2.png?amount=' + ${#numbers.formatInteger(totalEbookPrice, 1)} + '&addInfo=MUA%20EBOOK%20NHA%20SACH&accountName=CONG%20TY%20NHA%20SACH'"
+                    alt="Mã QR chuyển khoản công ty"
+                    class="img-fluid"
+                    style="max-width: 240px"
+                  />
+                </div>
+
+                <div class="text-start bg-light rounded p-3 small">
+                  <div>
+                    <strong>Ngân hàng:</strong> MB Bank (Ngân hàng Quân Đội)
+                  </div>
+                  <div>
+                    <strong>Số tài khoản:</strong> <code>0123456789</code>
+                  </div>
+                  <div>
+                    <strong>Chủ tài khoản:</strong> CÔNG TY TNHH NHÀ SÁCH
+                  </div>
+                  <div>
+                    <strong>Nội dung CK:</strong>
+                    <code>MUA EBOOK NHA SACH</code>
+                  </div>
+                </div>
+              </div>
+
+              <div class="modal-footer bg-light justify-content-between">
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary"
+                  onclick="backToStep1()"
+                >
+                  <i class="fas fa-arrow-left me-1"></i> Quay lại
+                </button>
+                <button type="submit" class="btn btn-primary fw-bold px-4">
+                  <i class="fas fa-check-circle me-1"></i> Tôi đã chuyển khoản
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Script chuyển đổi giữa Bước 1 và Bước 2 -->
+    <script>
+      function goToStep2() {
+        const selectedType = document.querySelector(
+          'input[name="bookType"]:checked',
+        ).value;
+        const step1 = document.getElementById("step1-choose-type");
+        const step2Book = document.getElementById("step2-book-form");
+        const step2Ebook = document.getElementById("step2-ebook-qr");
+        const modalTitle = document.getElementById("checkoutModalTitle");
+        const shippingInputs = step2Book.querySelectorAll("input");
+
+        step1.classList.add("d-none");
+
+        if (selectedType === "BOOK") {
+          modalTitle.innerHTML =
+            '<i class="fas fa-truck me-2"></i> Thông tin giao hàng (Sách giấy)';
+          step2Book.classList.remove("d-none");
+          step2Ebook.classList.add("d-none");
+          shippingInputs.forEach((input) => (input.required = true));
+        } else {
+          modalTitle.innerHTML =
+            '<i class="fas fa-qrcode me-2"></i> Quét mã QR thanh toán Ebook';
+          step2Ebook.classList.remove("d-none");
+          step2Book.classList.add("d-none");
+          shippingInputs.forEach((input) => (input.required = false));
+        }
+      }
+
+      function backToStep1() {
+        document.getElementById("step1-choose-type").classList.remove("d-none");
+        document.getElementById("step2-book-form").classList.add("d-none");
+        document.getElementById("step2-ebook-qr").classList.add("d-none");
+        document.getElementById("checkoutModalTitle").innerHTML =
+          '<i class="fas fa-question-circle me-2"></i> Chọn định dạng sách muốn mua';
+      }
+
+      const checkoutModalEl = document.getElementById("checkoutModal");
+      if (checkoutModalEl) {
+        checkoutModalEl.addEventListener("hidden.bs.modal", backToStep1);
+      }
+    </script>
+  </body>
+</html>
